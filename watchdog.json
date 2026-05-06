@@ -1,0 +1,5 @@
+{
+      "tasks": [
+          {"cmd": "ssh -v root@host -p 2222 -D 10081 -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -N", "match": "-D 10081"}
+      ]
+  }
