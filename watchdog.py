@@ -124,7 +124,8 @@ def find_pid(match):
                 continue
             if match in line:
                 return pid
-    else:
+    elif Path("/proc").is_dir():
+        # Linux: read /proc/<pid>/cmdline
         for pid_dir in Path("/proc").iterdir():
             if not pid_dir.name.isdigit():
                 continue
@@ -137,6 +138,27 @@ def find_pid(match):
                     return pid
             except (PermissionError, FileNotFoundError):
                 pass
+    else:
+        # macOS / other Unix: use ps
+        result = subprocess.run(
+            ["ps", "-eo", "pid,command"],
+            capture_output=True, text=True,
+        )
+        for line in result.stdout.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split(None, 1)
+            if len(parts) < 2:
+                continue
+            try:
+                pid = int(parts[0])
+            except ValueError:
+                continue
+            if pid == self_pid:
+                continue
+            if match in parts[1]:
+                return pid
     return None
 
 
